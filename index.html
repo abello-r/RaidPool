@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAIDPOOL — Pon el bote. Gana el reto.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black: #080808;
+      --white: #f5f0e8;
+      --accent: #ff3c00;
+      --accent2: #ffde00;
+      --mid: #1a1a1a;
+      --muted: #555;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    .cursor {
+      width: 12px; height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      transition: all 0.25s ease;
+      mix-blend-mode: difference;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 28px 48px;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      border-bottom: 1px solid #1f1f1f;
+      background: rgba(8,8,8,0.92);
+      backdrop-filter: blur(12px);
+    }
+
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.08em;
+      color: var(--white);
+    }
+    .logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--white); }
+
+    .nav-cta {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      padding: 10px 20px;
+      cursor: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .nav-cta:hover { background: #e03300; transform: translateY(-1px); }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 140px 48px 80px;
+      gap: 60px;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero-bg-text {
+      position: absolute;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22vw;
+      color: transparent;
+      -webkit-text-stroke: 1px #1a1a1a;
+      bottom: -60px;
+      left: -20px;
+      pointer-events: none;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .hero-left { position: relative; z-index: 2; }
+
+    .hero-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hero-tag::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 7vw, 7rem);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      margin-bottom: 32px;
+    }
+    h1 .highlight { color: var(--accent); display: block; }
+    h1 .sub { color: var(--accent2); display: block; }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      color: #888;
+      line-height: 1.7;
+      max-width: 440px;
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .btn-primary {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      padding: 16px 32px;
+      cursor: none;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent2);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: -1;
+    }
+    .btn-primary:hover { color: var(--black); }
+    .btn-primary:hover::after { transform: translateX(0); }
+
+    .btn-ghost {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid #2a2a2a;
+      padding: 16px 32px;
+      cursor: none;
+      transition: all 0.2s;
+    }
+    .btn-ghost:hover { color: var(--white); border-color: #555; }
+
+    .hero-right {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .pool-card {
+      background: var(--mid);
+      border: 1px solid #2a2a2a;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp 0.6s ease both;
+    }
+    .pool-card:nth-child(2) { animation-delay: 0.15s; }
+    .pool-card:nth-child(3) { animation-delay: 0.3s; margin-left: 40px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .pool-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+    .pool-card:nth-child(2)::before { background: var(--accent2); }
+    .pool-card:nth-child(3)::before { background: #00d4aa; }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .card-creator {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .live-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: var(--white);
+      padding: 3px 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .live-dot {
+      width: 5px; height: 5px;
+      background: var(--white);
+      border-radius: 50%;
+      animation: blink 1.2s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    .card-mission {
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .card-pool {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .pool-card:nth-child(2) .card-pool { color: var(--accent2); }
+    .pool-card:nth-child(3) .card-pool { color: #00d4aa; }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+    }
+    .card-stat {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .progress-bar {
+      height: 2px;
+      background: #2a2a2a;
+      margin-top: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      animation: progress 3s ease-in-out infinite alternate;
+    }
+    .pool-card:nth-child(2) .progress-fill { background: var(--accent2); animation-delay: 0.5s; }
+    .pool-card:nth-child(3) .progress-fill { background: #00d4aa; animation-delay: 1s; }
+
+    @keyframes progress {
+      from { width: 30%; }
+      to { width: 85%; }
+    }
+
+    .section {
+      padding: 120px 48px;
+      position: relative;
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 5vw, 5rem);
+      line-height: 0.95;
+      margin-bottom: 80px;
+      letter-spacing: 0.02em;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+
+    .step {
+      background: var(--mid);
+      padding: 48px 36px;
+      border-top: 2px solid transparent;
+      transition: border-color 0.3s;
+      position: relative;
+    }
+    .step:hover { border-top-color: var(--accent); }
+
+    .step-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem;
+      color: #1f1f1f;
+      line-height: 1;
+      margin-bottom: 24px;
+      transition: color 0.3s;
+    }
+    .step:hover .step-num { color: #2a2a2a; }
+
+    .step-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 12px;
+    }
+
+    .step-desc {
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.7;
+    }
+
+    .roles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      margin-top: 2px;
+    }
+
+    .role-card {
+      padding: 64px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .role-card.creator { background: var(--accent); }
+    .role-card.player { background: var(--mid); border: 1px solid #2a2a2a; }
+
+    .role-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 20px;
+    }
+
+    .role-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      line-height: 0.9;
+      margin-bottom: 24px;
+    }
+
+    .role-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .role-list li {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      opacity: 0.85;
+    }
+    .role-list li::before {
+      content: '→';
+      font-family: 'Space Mono', monospace;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .role-card.creator .role-list li { color: rgba(245,240,232,0.9); }
+
+    .role-bg-num {
+      position: absolute;
+      bottom: -40px;
+      right: -20px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14rem;
+      opacity: 0.06;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .stats-section {
+      padding: 80px 48px;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+    }
+
+    .stat-item {
+      padding: 40px 32px;
+      background: var(--mid);
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 4rem;
+      color: var(--accent);
+      line-height: 1;
+      display: block;
+    }
+    .stat-item:nth-child(2) .stat-num { color: var(--accent2); }
+    .stat-item:nth-child(3) .stat-num { color: #00d4aa; }
+    .stat-item:nth-child(4) .stat-num { color: #a78bfa; }
+
+    .stat-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 8px;
+      display: block;
+    }
+
+    .cta-section {
+      padding: 160px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(255,60,0,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 8vw, 9rem);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 1;
+    }
+    .cta-title span { color: var(--accent); display: block; }
+
+    .cta-sub {
+      font-size: 1rem;
+      color: #666;
+      margin-bottom: 48px;
+      position: relative;
+      z-index: 1;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+
+    footer {
+      padding: 32px 48px;
+      border-top: 1px solid #1a1a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+    }
+    .footer-logo span { color: var(--accent); }
+
+    .footer-copy {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1024px) {
+      body { cursor: auto; }
+      .cursor, .cursor-ring { display: none; }
+      nav { padding: 18px 20px; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 120px 20px 50px; gap: 26px; }
+      .hero-bg-text { font-size: 34vw; left: -5px; bottom: -20px; }
+      h1 { font-size: clamp(3rem, 13vw, 4.6rem); }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .pool-card:nth-child(3) { margin-left: 0; }
+      .steps, .roles, .stats-section { grid-template-columns: 1fr; }
+      .section { padding: 80px 20px; }
+      .cta-section { padding: 110px 20px; }
+      footer { padding: 24px 20px; flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <nav>
+    <div class="logo">RAID<span>POOL</span></div>
+    <ul class="nav-links">
+      <li><a href="#">Cómo funciona</a></li>
+      <li><a href="#">Streamers</a></li>
+      <li><a href="#">Misiones activas</a></li>
+    </ul>
+    <button class="nav-cta">Entrar al juego</button>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-bg-text">RAID</div>
+
+    <div class="hero-left">
+      <div class="hero-tag">Nueva plataforma — Early Access</div>
+      <h1>
+        PON EL BOTE.
+        <span class="highlight">LANZA EL RETO.</span>
+        <span class="sub">GANA EN VIVO.</span>
+      </h1>
+      <p class="hero-desc">
+        Streamers y fans crean misiones con bote real. Los viewers completan retos, la comunidad vota, y el dinero va al ganador. Sin intermediarios, sin trampa.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-primary">Ver misiones activas</button>
+        <button class="btn-ghost">Soy streamer →</button>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="pool-card">
+        <div class="card-header">
+          <div class="card-creator">VasoDeLean • Arc Raiders</div>
+          <div class="live-badge"><div class="live-dot"></div>En vivo</div>
+        </div>
+        <div class="card-mission">Primer viewer en llegar a zona Omega sin morir y subirlo en clip</div>
+        <div class="card-pool">€ 85.00</div>
+        <div class="card-meta">
+          <div class="card-stat">23 participantes</div>
+          <div class="card-stat">Quedan 18 min</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:62%"></div></div>
+      </div>
+
+      <div class="pool-card">
+        <div class="card-header">
+          <div class="card-creator">IbaiLlanos • Comunidad</div>
+          <div class="live-badge" style="background:#b59700; color:#080808"><div class="live-dot" style="background:#080808"></div>Votación</div>
+        </div>
+        <div class="card-mission">Mejor meme de la semana sobre el partido de ayer</div>
+        <div class="card-pool">€ 200.00</div>
+        <div class="card-meta">
+          <div class="card-stat">142 envíos</div>
+          <div class="card-stat">Votación: 2h</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
+      </div>
+
+      <div class="pool-card">
+        <div class="card-header">
+          <div class="card-creator">AuronPlay • Reto fans</div>
+          <div class="live-badge" style="background:#00d4aa; color:#080808"><div class="live-dot" style="background:#080808"></div>Abierto</div>
+        </div>
+        <div class="card-mission">Trivia: 10 preguntas sobre Minecraft en menos de 60 segundos</div>
+        <div class="card-pool">€ 50.00</div>
+        <div class="card-meta">
+          <div class="card-stat">7 completaron</div>
+          <div class="card-stat">Quedan 3 días</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:35%"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section reveal">
+    <div class="section-label">El sistema</div>
+    <div class="section-title">CÓMO<br />FUNCIONA</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Crea la misión</div>
+        <p class="step-desc">El streamer o cualquier fan define el reto, pone su dinero en el bote, y establece las reglas. La comunidad puede sumarse al bote para hacerlo más grande.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Compite o vota</div>
+        <p class="step-desc">Retos automáticos (trivia, minijuegos, clips verificados) o misiones creativas donde la comunidad vota al ganador. Sin trampas, sin favoritismos.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Cobra al instante</div>
+        <p class="step-desc">El sistema distribuye el bote automáticamente al ganador. Sin esperas, sin gestión manual. Nosotros nos quedamos un 8% y el resto es tuyo.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0;">
+    <div class="section-label reveal">Para todos</div>
+    <div class="section-title reveal">¿QUIÉN<br />ERES TÚ?</div>
+    <div class="roles">
+      <div class="role-card creator">
+        <div class="role-label">Para streamers y creadores</div>
+        <div class="role-title">EL QUE<br />CREA<br />EL JUEGO</div>
+        <ul class="role-list">
+          <li>Lanza misiones desde tu panel en segundos</li>
+          <li>Tu comunidad pone el bote, tú pones las reglas</li>
+          <li>Engagement real: viewers compiten, no solo ven</li>
+          <li>Compatible con Twitch, Kick, YouTube y TikTok</li>
+        </ul>
+        <div class="role-bg-num">S</div>
+      </div>
+      <div class="role-card player">
+        <div class="role-label">Para viewers y participantes</div>
+        <div class="role-title">EL QUE<br />SE<br />LLEVA EL BOTE</div>
+        <ul class="role-list">
+          <li>Participa en misiones de tus streamers favoritos</li>
+          <li>Completa retos, sube clips, vota y gana dinero real</li>
+          <li>Sin wallets, sin crypto, solo tarjeta o PayPal</li>
+          <li>Suma al bote de otros y llévate parte si gana tu votado</li>
+        </ul>
+        <div class="role-bg-num" style="color:#2a2a2a; opacity:1">P</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-section reveal">
+    <div class="stat-item">
+      <span class="stat-num">8%</span>
+      <span class="stat-label">Comisión por bote</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">0€</span>
+      <span class="stat-label">Para crear una misión</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">+ES</span>
+      <span class="stat-label">100% en español</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">∞</span>
+      <span class="stat-label">Bote sin límite</span>
+    </div>
+  </div>
+
+  <section class="cta-section reveal">
+    <div class="cta-bg"></div>
+    <div class="cta-title">
+      ¿LISTO PARA
+      <span>EL RETO?</span>
+    </div>
+    <p class="cta-sub">Early access abierto — sin coste, sin compromiso</p>
+    <button class="btn-primary" style="font-size: 0.9rem; padding: 20px 48px;">Unirme a la lista de espera</button>
+  </section>
+
+  <footer>
+    <div class="footer-logo">RAID<span>POOL</span></div>
+    <div class="footer-copy">© 2025 Raidpool — Todos los derechos reservados</div>
+  </footer>
+
+  <script>
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx - 6 + 'px';
+      cursor.style.top = my - 6 + 'px';
+    });
+
+    function animateRing() {
+      rx += (mx - rx - 18) * 0.12;
+      ry += (my - ry - 18) * 0.12;
+      ring.style.left = rx + 'px';
+      ring.style.top = ry + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    document.querySelectorAll('button, a').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.style.transform = 'scale(2.5)');
+      el.addEventListener('mouseleave', () => cursor.style.transform = 'scale(1)');
+    });
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    function randomFlicker() {
+      const pools = document.querySelectorAll('.card-pool');
+      const idx = Math.floor(Math.random() * pools.length);
+      pools[idx].style.opacity = '0.4';
+      setTimeout(() => pools[idx].style.opacity = '1', 100);
+    }
+    setInterval(randomFlicker, 3000);
+  </script>
+</body>
+</html>
