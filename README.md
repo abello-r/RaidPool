@@ -6,6 +6,8 @@
   <img src="https://img.shields.io/badge/Type-Landing%20Page-2563eb" alt="Type" />
 </p>
 
+🚧 **This project is currently under construction.**
+
 A bold, gamified landing page concept for **RaidPool** — a challenge platform where creators launch missions, communities fund prize pools, and winners earn in real time.
 
 ## Live
